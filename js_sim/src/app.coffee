@@ -87,30 +87,81 @@ MOON_DATA = """
 79,Dysis,Kalvin,Daytime,10,0.0015,2,28570410,0.4074,Pasiphae (?),-1,
 """
 
+T0 = 0
+T1 = 100
+DT = 0.1
+SCALE = 5e7
+
+faction2color = {
+    "BAI": "red",
+    "NAT": "blue",
+    "God": "green",
+    "Con": "yellow",
+    "Day": "orange",
+    "Mus": "purple",
+    "x": "gray"
+}
+
 class Moon
     constructor: (@id, @name, @player, @faction, @income, @mass, @diameter, @semimajor, @ecc, @sign) ->
-        # Placeholders
-        @period = null
-        @semiminor = null # in km
-
         # Derived from
         # https://www.wikiwand.com/en/Kepler%27s_laws_of_planetary_motion
         @period = TIME_CONSTANT * @semimajor ** 1.5
         @semiminor = @semimajor * Math.sqrt(1 - @ecc ** 2)
+        @positions = @calculate_trajectory()
 
-    position_at_time: (t) ->
+    get_position_at_time: (t) ->
+        """ Return the position of the moon at time t """
+        # Convert time to index
+        i = (t - T0) / DT
+
+        # Interpolate between the indices we have
+        i0 = Math.floor(i)
+        i1 = Math.ceil(i)
+
+        if i0 >= @positions.length
+            i0 = @positions.length - 1
+        if i1 >= @positions.length
+            i1 = @positions.length - 1
+        s = i - i0
+
+        p0 = @positions[i0]
+        p0x = p0[0]
+        p0y = p0[1]
+
+        p1 = @positions[i1]
+        p1x = p1[0]
+        p1y = p1[1]
+
+        px = p1x * s + p0x * (1 - s)
+        py = p1y * s + p0y * (1 - s)
+
+        return [px, py]
+
+    calculate_position_at_time: (t) ->
         """ Return the position of the moon at time t """
         t += TIME_OFFSET  # Compensate for start time
 
         n = TWO_PI / @period  # mean motion
         M = n * t  # mean anomaly
 
-        kepler_root_fn: (E_) ->
-            return (E_ - @ecc * np.sin(E_) - M) ** 2
-        #result = minimize(kepler_root_fn, 0)
-        # TODO NEED TO FIX
-        result = M
-        E = result
+        f = (x) =>
+            return (x - @ecc * Math.sin(x) - M)
+
+        newton_step = (x) =>
+            return (x - @ecc * Math.sin(x) - M) / (2 * (1 - @ecc * Math.cos(x)))
+
+        E = 0
+        x = M
+        ITER_MAX = 10
+        for i in [0...ITER_MAX]
+            x_new = x - newton_step(x)
+            E = x_new
+            if f(x) < 0.001  # desired accuracy achieved
+                break
+            x = x_new
+            if i == ITER_MAX - 1
+                console.log("Hit max iterations -- orbit may be slightly off course")
 
         theta = 2 * Math.atan(Math.sqrt(((1 + @ecc) / (1 - @ecc)) * Math.tan(E / 2) ** 2))
 
@@ -124,6 +175,19 @@ class Moon
         x = r * Math.cos(theta)
         y = r * Math.sin(theta)
         return [x, y]
+
+    calculate_trajectory: () =>
+        t0 = 0
+        t1 = 100
+        dt = 1
+
+        poss = []
+        t = t0
+        while t <= t1
+            pos = @calculate_position_at_time(t)
+            poss.push(pos)
+            t += dt
+        return poss
 
 parse_moons = () ->
     parse_moon = (row) ->
@@ -147,26 +211,83 @@ parse_moons = () ->
     moons = (parse_moon(row) for row in rows)
     return moons
 
-coord_to_pixel = (x) ->
-    # Define universal scale
-    SCALE = 1e8
-
+pos_to_percent = (x) ->
     # Get coord as percentage of scale
-    percent = (x / SCALE) * 100 + 50
-    console.log(percent)
+    percent = ((x / SCALE) + 1) * 50
 
     return percent + "%"
 
 # Parse moon data
 moons = parse_moons()
 
-animate = () ->
-    TIMESCALE = 1e3
+draw_grid = (svgDoc) ->
+    # Draw grid
+    svgDoc.append("line")
+        .attr("class", "grid-line-center")
+        .attr("x1", "0%")
+        .attr("x2", "100%")
+        .attr("y1", "50%")
+        .attr("y2", "50%")
+
+    svgDoc.append("line")
+        .attr("class", "grid-line-center")
+        .attr("x1", "50%")
+        .attr("x2", "50%")
+        .attr("y1", "0%")
+        .attr("y2", "100%")
+
+    for y in [0...20]
+        svgDoc.append("line")
+            .attr("class", "grid-line")
+            .attr("x1", "0%")
+            .attr("x2", "100%")
+            .attr("y1", y * 5 + "%")
+            .attr("y2", y * 5 + "%")
+
+    for x in [0...20]
+        svgDoc.append("line")
+            .attr("class", "grid-line")
+            .attr("x1", x * 5 + "%")
+            .attr("x2", x * 5 + "%")
+            .attr("y1", "0%")
+            .attr("y2", "100%")
+
+# Initialize SVG
+svgDoc = d3.select("body").append("svg")
+
+init = () ->
+    $(document).on('keydown', (e) ->
+        if (String.fromCharCode(e.which) == "Z")  # +
+            SCALE *= 0.95
+            redraw()
+        if (String.fromCharCode(e.which) == "X")  # -
+            SCALE /= 0.95
+            redraw()
+    )
+    # Draw grid
+    draw_grid(svgDoc)
+
+    redraw()
+
+redraw = () ->
+    # Draw path
+    # Remove all old paths
+    svgDoc.selectAll("ellipse").remove()
+
+    paths = svgDoc.selectAll("ellipse")
+                  .data(moons)
+
+    paths.enter()
+         .append("ellipse")
+           .attr("cx", (m) -> "#{-m.semimajor * m.ecc/SCALE * 50 + 50}%")
+           .attr("cy", "50%")
+           .attr("rx", (m) -> "#{m.semimajor/SCALE * 50}%")
+           .attr("ry", (m) -> "#{m.semiminor/SCALE * 50}%")
 
     # Draw moons
-    svgDoc = d3.select("body").append("svg")
+    svgDoc.selectAll("circle").remove()
 
-    s = svgDoc.append("g").selectAll("circle")
+    s = svgDoc.selectAll("circle")
         .data(moons)
 
     s.exit().remove()
@@ -174,9 +295,11 @@ animate = () ->
     s.enter()
      .append("circle")
        .attr("r", (m) -> 2)
+       .attr("fill", (m) -> faction2color[m.faction.substr(0, 3)])
        .transition()
-       .duration(10000)
-       .attrTween("cx", (m) -> (t) -> coord_to_pixel(m.position_at_time(t * TIMESCALE)[0]))
-       .attrTween("cy", (m) -> (t) -> coord_to_pixel(m.position_at_time(t * TIMESCALE)[1]))
+       .ease("constant")
+       .duration(100000)
+       .attrTween("cx", (m) -> (t) -> pos_to_percent(m.get_position_at_time(t * (T1 - T0) + T0)[0]))
+       .attrTween("cy", (m) -> (t) -> pos_to_percent(m.get_position_at_time(t * (T1 - T0) + T0)[1]))
 
-animate()
+init()
