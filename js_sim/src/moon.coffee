@@ -164,16 +164,12 @@ class MoonClass
         return [x, y]
 
     calculate_trajectory: () =>
-        t0 = 0
-        t1 = 100
-        dt = 1
-
         poss = []
-        t = t0
-        while t <= t1
+        t = Config["T0"]
+        while t <= Config["T1"]
             pos = @calculate_position_at_time(t)
             poss.push(pos)
-            t += dt
+            t += Config["DT"]
         return poss
 
     faction_color: () ->
@@ -192,7 +188,7 @@ parse_moons = () ->
         items = row.split(",")
 
         id_ = parseInt(items[0], 10)
-        name = parseInt(items[1], 10)
+        name = items[1]
         player = items[2]
         faction = items[3]
         income = parseInt(items[4], 10)
