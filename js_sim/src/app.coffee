@@ -51,14 +51,17 @@ draw_grid = (svgDoc) ->
 
 # Initialize SVG
 svgDoc = d3.select("body").append("svg")
-moonText = svgDoc.append("text")
-      .attr("x", "20px")
-      .attr("y", "40px")
-      .text("")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "30px")
-      .attr("fill", "red")
+moonText = d3.select("body")
+    .append("div")
+      .style("font-family", "sans-serif")
+      .style("font-size", "20px")
+      .style("color", "white")
       .style("text-shadow", "1px 1px #111")
+      .style("text-align", "left")
+      .style("position", "absolute")
+      .style("display", "block")
+      .style("top", "10px")
+      .style("left", "5%")
 
 helpText = d3.select("body")
     .append("div")
@@ -72,8 +75,8 @@ helpText = d3.select("body")
       .style("top", "10px")
       .style("right", "5%")
       .html("""
-q - zoom in<br>
-w - zoom out<br>
+s - zoom in<br>
+a - zoom out<br>
 z - step backwards<br>
 Z - step backwards fast<br>
 x - step forwards<br>
@@ -99,10 +102,10 @@ timeText = d3.select("body")
 
 init = () ->
     $(document).on('keydown', (e) ->
-        if (e.key == "q")  # q = zoom in
+        if (e.key == "s")  # s = zoom in
             SCALE *= 0.95
             redraw()
-        if (e.key == "w")  # w = zoom out
+        if (e.key == "a")  # a = zoom out
             SCALE /= 0.95
             redraw()
         if (e.key == "z")  # z = step backward
@@ -177,9 +180,11 @@ redraw = () ->
        .attr("fill", (m) -> m.faction_color())
        .attr("stroke", "black")
        .on("mouseover", (m) ->
-             console.log(m.name)
-             moonText.text(m.name)
-             moonText.attr("fill", m.faction_color())
+             html = m.name
+             if (m.player != null)
+                 html += "<br>owned by #{m.player} (#{m.faction})"
+             moonText.html(html)
+             moonText.style("color", m.faction_color())
        )
 
 

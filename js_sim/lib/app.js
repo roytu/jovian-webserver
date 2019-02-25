@@ -42,19 +42,19 @@
   // Initialize SVG
   svgDoc = d3.select("body").append("svg");
 
-  moonText = svgDoc.append("text").attr("x", "20px").attr("y", "40px").text("").attr("font-family", "sans-serif").attr("font-size", "30px").attr("fill", "red").style("text-shadow", "1px 1px #111");
+  moonText = d3.select("body").append("div").style("font-family", "sans-serif").style("font-size", "20px").style("color", "white").style("text-shadow", "1px 1px #111").style("text-align", "left").style("position", "absolute").style("display", "block").style("top", "10px").style("left", "5%");
 
-  helpText = d3.select("body").append("div").style("font-family", "sans-serif").style("font-size", "20px").style("color", "white").style("text-shadow", "1px 1px #111").style("text-align", "right").style("position", "absolute").style("display", "block").style("top", "10px").style("right", "5%").html("q - zoom in<br>\nw - zoom out<br>\nz - step backwards<br>\nZ - step backwards fast<br>\nx - step forwards<br>\nX - step forwards fast<br>\nArrow Keys - move<br>");
+  helpText = d3.select("body").append("div").style("font-family", "sans-serif").style("font-size", "20px").style("color", "white").style("text-shadow", "1px 1px #111").style("text-align", "right").style("position", "absolute").style("display", "block").style("top", "10px").style("right", "5%").html("s - zoom in<br>\na - zoom out<br>\nz - step backwards<br>\nZ - step backwards fast<br>\nx - step forwards<br>\nX - step forwards fast<br>\nArrow Keys - move<br>");
 
   timeText = d3.select("body").append("div").style("font-family", "sans-serif").style("font-size", "20px").style("color", "white").style("text-shadow", "1px 1px #111").style("text-align", "right").style("position", "absolute").style("display", "block").style("top", "80%").style("right", "5%").style("width", "100%").style("height", "100%").html("t: 0 days");
 
   init = function() {
     $(document).on('keydown', function(e) {
-      if (e.key === "q") { // q = zoom in
+      if (e.key === "s") { // s = zoom in
         SCALE *= 0.95;
         redraw();
       }
-      if (e.key === "w") { // w = zoom out
+      if (e.key === "a") { // a = zoom out
         SCALE /= 0.95;
         redraw();
       }
@@ -134,9 +134,13 @@
     }).attr("fill", function(m) {
       return m.faction_color();
     }).attr("stroke", "black").on("mouseover", function(m) {
-      console.log(m.name);
-      moonText.text(m.name);
-      return moonText.attr("fill", m.faction_color());
+      var html;
+      html = m.name;
+      if (m.player !== null) {
+        html += `<br>owned by ${m.player} (${m.faction})`;
+      }
+      moonText.html(html);
+      return moonText.style("color", m.faction_color());
     });
     // Update time
     return timeText.html(`t: ${current_time.toFixed(2)} days`);
