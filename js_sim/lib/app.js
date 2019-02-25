@@ -14,7 +14,7 @@
 
   Config = require("./config.js");
 
-  moons = Moon.parse_moons();
+  moons = [];
 
   pos_to_percent = function(x) {
     var percent;
@@ -49,6 +49,8 @@
   timeText = d3.select("body").append("div").style("font-family", "sans-serif").style("font-size", "20px").style("color", "white").style("text-shadow", "1px 1px #111").style("text-align", "right").style("position", "absolute").style("display", "block").style("top", "80%").style("right", "5%").style("width", "100%").style("height", "100%").html("t: 0 days");
 
   init = function() {
+    console.log("Initializing...");
+    moons = Moon.parse_moons();
     $(document).on('keydown', function(e) {
       if (e.key === "s") { // s = zoom in
         SCALE *= 0.95;
@@ -146,6 +148,9 @@
     return timeText.html(`t: ${current_time.toFixed(2)} days`);
   };
 
-  init();
+  // Wait for moons to finish downloading first
+  Moon.readyPromise.then(function() {
+    return init();
+  });
 
 }).call(this);

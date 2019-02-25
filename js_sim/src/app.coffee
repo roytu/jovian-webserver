@@ -7,7 +7,7 @@ GLOBALY = 0
 Moon = require("./moon.js")
 Config = require("./config.js")
 
-moons = Moon.parse_moons()
+moons = []
 
 pos_to_percent = (x) ->
     # Get coord as percentage of scale
@@ -101,6 +101,10 @@ timeText = d3.select("body")
 
 
 init = () ->
+    console.log("Initializing...")
+
+    moons = Moon.parse_moons()
+
     $(document).on('keydown', (e) ->
         if (e.key == "s")  # s = zoom in
             SCALE *= 0.95
@@ -140,8 +144,6 @@ init = () ->
         if (e.key == "ArrowDown")  # Move
             GLOBALY -= 5
             redraw()
-
-
     )
     svgDoc.append("div")
           .text("Moon: ")
@@ -187,8 +189,8 @@ redraw = () ->
              moonText.style("color", m.faction_color())
        )
 
-
     # Update time
     timeText.html("t: #{current_time.toFixed(2)} days")
 
-init()
+# Wait for moons to finish downloading first
+Moon.readyPromise.then(() -> init())
