@@ -1,7 +1,8 @@
 
 Config = require("./config.js")
 
-TIME_CONSTANT = 6.378011090644188e-09
+#TIME_CONSTANT = 6.378011090644188e-09
+TIME_CONSTANT = 6.46-09  # Correcter value (thanks Szilard)
 TIME_OFFSET = 27570
 PI = 3.141592653589
 TWO_PI = 2 * PI
