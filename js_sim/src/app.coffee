@@ -100,6 +100,21 @@ timeText = d3.select("body")
       .style("height", "100%")
       .html("t:  _______________   days")
 
+timeSubText = d3.select("body")
+    .append("div")
+      .style("font-family", "sans-serif")
+      .style("font-size", "10px")
+      .style("color", "white")
+      .style("text-shadow", "1px 1px #111")
+      .style("text-align", "right")
+      .style("position", "absolute")
+      .style("display", "block")
+      .style("top", "84%")
+      .style("right", "5%")
+      .style("width", "100%")
+      .style("height", "100%")
+      .html("(since game start)")
+
 stepText = d3.select("body")
     .append("div")
       .style("font-family", "sans-serif")
@@ -131,7 +146,7 @@ timeInput = d3.select("body")
       .style("top", "80%")
       .style("right", "10%")
       .attr("value", "0")
-      .on("change", () => current_time = parseFloat(timeInput.property("value"), 10); redraw())
+      .on("change", () => current_time = parseFloat(timeInput.property("value"), 10) + 27570; redraw())  # NOTE: value is actually current_time - 27570
 
 stepInput = d3.select("body")
     .append("input")
@@ -241,7 +256,7 @@ redraw = () ->
        )
 
     # Update time
-    timeInput.property("value", "#{current_time.toFixed(2)}")
+    timeInput.property("value", "#{(current_time - 27570).toFixed(2)}")
 
 # Wait for moons to finish downloading first
 Moon.readyPromise.then(() -> init())
