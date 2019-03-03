@@ -3,9 +3,9 @@
   // Globals
   var DT, T0, T1;
 
-  T0 = 0;
+  T0 = 0; // Time begin since alignment
 
-  T1 = 100;
+  T1 = 27670; // Time end since alignment
 
   DT = 0.1;
 

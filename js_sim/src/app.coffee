@@ -1,5 +1,6 @@
 
-current_time = 0
+current_time = 27570
+step = 0.1
 SCALE = 5e7
 GLOBALX = 0
 GLOBALY = 0
@@ -99,6 +100,21 @@ timeText = d3.select("body")
       .style("height", "100%")
       .html("t:  _______________   days")
 
+stepText = d3.select("body")
+    .append("div")
+      .style("font-family", "sans-serif")
+      .style("font-size", "20px")
+      .style("color", "white")
+      .style("text-shadow", "1px 1px #111")
+      .style("text-align", "right")
+      .style("position", "absolute")
+      .style("display", "block")
+      .style("top", "90%")
+      .style("right", "5%")
+      .style("width", "100%")
+      .style("height", "100%")
+      .html("step: _________ days")
+
 timeInput = d3.select("body")
     .append("input")
       .attr("type", "text")
@@ -117,6 +133,24 @@ timeInput = d3.select("body")
       .attr("value", "0")
       .on("change", () => current_time = parseFloat(timeInput.property("value"), 10); redraw())
 
+stepInput = d3.select("body")
+    .append("input")
+      .attr("type", "text")
+      .attr("size", "10")
+      .style("font-family", "sans-serif")
+      .style("font-size", "20px")
+      .style("background-color", "transparent")
+      .style("text-shadow", "1px 1px #111")
+      .style("text-align", "right")
+      .style("color", "white")
+      .style("border", "none")
+      .style("position", "absolute")
+      .style("display", "block")
+      .style("top", "90%")
+      .style("right", "10%")
+      .attr("value", "#{step}")
+      .on("change", () => step = parseFloat(stepInput.property("value"), 10))
+
 init = () ->
     console.log("Initializing...")
 
@@ -130,22 +164,22 @@ init = () ->
             SCALE /= 0.95
             redraw()
         if (e.key == "z")  # z = step backward
-            current_time -= Config["DT"]
+            current_time -= step
             if current_time < Config["T0"]
                 current_time = Config["T0"]
             redraw()
         if (e.key == "Z")  # Z = step backward fast
-            current_time -= Config["DT"] * 10
+            current_time -= step * 10
             if current_time < Config["T0"]
                 current_time = Config["T0"]
             redraw()
         if (e.key == "x")  # z = step forward
-            current_time += Config["DT"]
+            current_time += step
             if current_time > Config["T1"]
                 current_time = Config["T1"]
             redraw()
         if (e.key == "X")  # Z = step forward fast
-            current_time += Config["DT"] * 10
+            current_time += step * 10
             if current_time > Config["T1"]
                 current_time = Config["T1"]
             redraw()

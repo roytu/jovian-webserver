@@ -3,7 +3,7 @@ Config = require("./config.js")
 
 #TIME_CONSTANT = 6.378011090644188e-09
 TIME_CONSTANT = 6.46e-09  # Correcter value (thanks Szilard)
-TIME_OFFSET = 27570
+#TIME_OFFSET = 27570
 PI = 3.141592653589
 TWO_PI = 2 * PI
 
@@ -18,6 +18,10 @@ class MoonClass
 
     get_position_at_time: (t) ->
         """ Return the position of the moon at time t """
+        # Mod since we only save one period of positions
+        t = ((t % @period) + @period) % @period  # Disgusting trick to modulo negative numbers
+                                                 # Stolen from https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
+
         # Convert time to index
         i = (t - Config["T0"]) / Config["DT"]
 
@@ -45,9 +49,7 @@ class MoonClass
         return [px, py]
 
     calculate_position_at_time: (t) ->
-        """ Return the position of the moon at time t """
-        t += TIME_OFFSET  # Compensate for start time
-
+        """ Return the position of the moon at time t (since alignment) """
         n = TWO_PI / @period  # mean motion
         M = n * t  # mean anomaly
 
@@ -85,8 +87,8 @@ class MoonClass
     calculate_trajectory: () =>
         poss = []
         t = Config["T0"]
-        while t <= Config["T1"]
-            pos = @calculate_position_at_time(t)
+        while t <= Config["T1"] and t < Config["T0"] + @period
+            pos = @calculate_position_at_time(t % @period)
             poss.push(pos)
             t += Config["DT"]
         return poss
