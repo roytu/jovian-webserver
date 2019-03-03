@@ -97,8 +97,25 @@ timeText = d3.select("body")
       .style("right", "5%")
       .style("width", "100%")
       .style("height", "100%")
-      .html("t: 0 days")
+      .html("t:  _______________   days")
 
+timeInput = d3.select("body")
+    .append("input")
+      .attr("type", "text")
+      .attr("size", "10")
+      .style("font-family", "sans-serif")
+      .style("font-size", "20px")
+      .style("background-color", "transparent")
+      .style("text-shadow", "1px 1px #111")
+      .style("text-align", "right")
+      .style("color", "white")
+      .style("border", "none")
+      .style("position", "absolute")
+      .style("display", "block")
+      .style("top", "80%")
+      .style("right", "10%")
+      .attr("value", "0")
+      .on("change", () => current_time = parseFloat(timeInput.property("value"), 10); redraw())
 
 init = () ->
     console.log("Initializing...")
@@ -190,7 +207,7 @@ redraw = () ->
        )
 
     # Update time
-    timeText.html("t: #{current_time.toFixed(2)} days")
+    timeInput.property("value", "#{current_time.toFixed(2)}")
 
 # Wait for moons to finish downloading first
 Moon.readyPromise.then(() -> init())
