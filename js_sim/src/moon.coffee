@@ -100,7 +100,9 @@ class MoonClass
             "God™": "green",
             "Daytime": "yellow",
             "Contested": "orange",
-            "Muses": "brown"
+            "Muses": "brown",
+            "AoE": "black",
+            "Mercs": "#146a39"
         }
 
         if d[@faction]? then d[@faction] else "lightgray"

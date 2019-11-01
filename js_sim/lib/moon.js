@@ -119,7 +119,9 @@
           "God™": "green",
           "Daytime": "yellow",
           "Contested": "orange",
-          "Muses": "brown"
+          "Muses": "brown",
+          "AoE": "black",
+          "Mercs": "#146a39"
         };
         if (d[this.faction] != null) {
           return d[this.faction];
